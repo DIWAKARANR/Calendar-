@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Animated Calendar</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .calendar-container {
+            text-align: center;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(-50px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+
+        .calendar-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .nav-button {
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: background 0.3s;
+        }
+
+        .nav-button:hover {
+            background: #0056b3;
+        }
+
+        #calendarTitle {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: transform 1s ease-out, opacity 1s ease-out;
+        }
+
+        .calendar.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .calendar div {
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: background 0.3s, transform 0.3s;
+            text-align: center;
+        }
+
+        .calendar div:hover {
+            background: #e0e0e0;
+            transform: scale(1.1);
+        }
+
+        .background-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .background-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 182, 193, 0.5), rgba(255, 105, 180, 0.5));
+            animation: rotateBackground 15s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes rotateBackground {
+            0% { transform: rotate(0); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .background-animation .animated-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .background-animation .animated-shapes div {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 105, 180, 0.5);
+            animation: moveShapes 20s infinite;
+        }
+
+        @keyframes moveShapes {
+            0% { transform: translateX(-100%) translateY(-100%) scale(0); }
+            50% { transform: translateX(100%) translateY(100%) scale(1); }
+            100% { transform: translateX(-100%) translateY(-100%) scale(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="animated-shapes">
+            <div style="width: 100px; height: 100px; top: 10%; left: 10%; background: rgba(255, 105, 180, 0.5);"></div>
+            <div style="width: 150px; height: 150px; top: 30%; left: 50%; background: rgba(135, 206, 250, 0.5);"></div>
+            <div style="width: 200px; height: 200px; top: 60%; left: 30%; background: rgba(144, 238, 144, 0.5);"></div>
+            <!-- More shapes can be added here -->
+        </div>
+    </div>
+    <div class="calendar-container">
+        <div class="header">
+            <button id="prevYear" class="nav-button">«</button>
+            <button id="prevMonth" class="nav-button">‹</button>
+            <h1 id="calendarTitle"></h1>
+            <button id="nextMonth" class="nav-button">›</button>
+            <button id="nextYear" class="nav-button">»</button>
+        </div>
+        <div class="calendar" id="calendar"></div>
+    </div>
+
+    <script>
+        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        function generateCalendar(year, month) {
+            const calendar = document.getElementById('calendar');
+            const calendarTitle = document.getElementById('calendarTitle');
+
+            calendar.innerHTML = ''; // Clear previous calendar
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDay = new Date(year, month + 1, 0).getDate();
+
+            // Add day headers
+            daysOfWeek.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.textContent = day;
+                dayHeader.style.fontWeight = 'bold';
+                calendar.appendChild(dayHeader);
+            });
+
+            // Add blank spaces for the first week days
+            for (let i = 0; i < firstDay; i++) {
+                calendar.appendChild(document.createElement('div'));
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= lastDay; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.textContent = day;
+                calendar.appendChild(dayCell);
+            }
+
+            // Update the calendar title
+            calendarTitle.textContent = `${month + 1}/${year}`;
+
+            // Trigger the calendar container animation
+            const container = document.querySelector('.calendar-container');
+            container.classList.remove('show');
+            void container.offsetWidth; // Trigger reflow
+            container.classList.add('show');
+
+            // Trigger the calendar animation
+            const cal = document.querySelector('.calendar');
+            cal.classList.remove('show');
+            void cal.offsetWidth; // Trigger reflow
+            cal.classList.add('show');
+        }
+
+        function updateCalendar(offsetMonth = 0) {
+            const calendar = document.querySelector('.calendar');
+            calendar.classList.remove('show'); // Remove class to trigger animation
+
+            setTimeout(() => {
+                currentMonth += offsetMonth;
+                currentYear += Math.floor(currentMonth / 12);
+                currentMonth = (currentMonth % 12 + 12) % 12;
+                generateCalendar(currentYear, currentMonth);
+            }, 300); // Delay to allow for transition out
+        }
+
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+
+        // Initial calendar generation
+        generateCalendar(currentYear, currentMonth);
+
+        document.getElementById('prevMonth').addEventListener('click', () => updateCalendar(-1));
+        document.getElementById('nextMonth').addEventListener('click', () => updateCalendar(1));
+        document.getElementById('prevYear').addEventListener('click', () => updateCalendar(-12));
+        document.getElementById('nextYear').addEventListener('click', () => updateCalendar(12));
+    </script>
+</body>
+  </html>
+  
